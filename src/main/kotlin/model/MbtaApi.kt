@@ -11,12 +11,24 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 
 /**
+ * Provides access to a Retrofit API service with API calls for route and stop
+ * data.
+ */
+internal interface Api {
+    /**
+     * Returns a newly created ApiService that can be used to obtain route and
+     * stop data.
+     */
+    fun createService(): ApiService
+}
+
+/**
  * Provides access to the MBTA API through a Retrofit API service.
  *
  * @constructor Creates the Retrofit instance using the provided base URL.
  * @throws IllegalArgumentException if the provided base URL is not a valid URL.
  */
-internal class Api(baseUrl: String = MBTA_API_BASE_URL) {
+internal class MbtaApi(baseUrl: String = MBTA_API_BASE_URL) : Api {
     /**
      * Retrofit instance that can be used to create a service to obtain data
      * from the MBTA API.
@@ -29,11 +41,7 @@ internal class Api(baseUrl: String = MBTA_API_BASE_URL) {
         ))
         .build()
 
-    /**
-     * Returns a newly created ApiService from the Api's Retrofit instance that
-     * provides access to API calls to obtain MBTA data.
-     */
-    internal fun createService(): ApiService {
+    override fun createService(): ApiService {
         return retrofit.create(ApiService::class.java)
     }
 
@@ -62,7 +70,7 @@ internal interface ApiService {
      * Returns a call to obtain a list of all subway routes (routes of the Light
      * Rail or Heavy Rail type) from the API.
      */
-    @GET(Api.SUBWAY_ROUTES_ENDPOINT)
+    @GET(MbtaApi.SUBWAY_ROUTES_ENDPOINT)
     fun getSubwayRoutes(): Call<List<Route>>
 }
 

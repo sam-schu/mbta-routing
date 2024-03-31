@@ -16,15 +16,15 @@ class LocalApiTests {
         val validUrl = "https://www.google.com/"
         val invalidUrl = "invalidURL"
 
-        assertEquals(Api.MBTA_API_BASE_URL, Api().retrofit.baseUrl().toString())
-        assertEquals(validUrl, Api(validUrl).retrofit.baseUrl().toString())
-        assertThrows<IllegalArgumentException> { Api(invalidUrl) }
+        assertEquals(MbtaApi.MBTA_API_BASE_URL, MbtaApi().retrofit.baseUrl().toString())
+        assertEquals(validUrl, MbtaApi(validUrl).retrofit.baseUrl().toString())
+        assertThrows<IllegalArgumentException> { MbtaApi(invalidUrl) }
     }
 
     @Test
     fun testGetSubwayRoutesSuccess() {
         testWithMockServer(emptyResponse, singleRoute, threeRoutes) { url ->
-            val service = Api(url).createService()
+            val service = MbtaApi(url).createService()
 
             assertEquals(
                 listOf(),
@@ -52,7 +52,7 @@ class LocalApiTests {
         testWithMockServer(
             badRequest, forbidden, rateLimited, malformedResponse, singleRouteMissingLongName
         ) {url ->
-            val service = Api(url).createService()
+            val service = MbtaApi(url).createService()
 
             repeat(3) {
                 assertEquals(false, service.getSubwayRoutes().execute().isSuccessful)
@@ -67,7 +67,7 @@ class LocalApiTests {
     @Test
     fun testGetSubwayRoutesMixedSuccess() {
         testWithMockServer(rateLimited, threeRoutes) {url ->
-            val service = Api(url).createService()
+            val service = MbtaApi(url).createService()
 
             assertEquals(false, service.getSubwayRoutes().execute().isSuccessful)
 

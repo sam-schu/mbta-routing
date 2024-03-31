@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class ServerApiTests {
     @Test
     fun testGetSubwayRoutes() {
-        val service = Api().createService()
+        val service = MbtaApi().createService()
 
         assertEquals(
             listOf(
