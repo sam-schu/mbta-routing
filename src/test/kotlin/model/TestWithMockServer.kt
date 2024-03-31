@@ -1,6 +1,31 @@
 package model
 
 import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+
+// Enqueues the provided responses onto a mock local web server, and then
+// runs the specified test with the string URL of the server as an argument.
+fun testWithMockServer(
+    vararg responses: MockResponse,
+    test: (String) -> Unit
+) {
+    val mockServer = MockWebServer().apply {
+        responses.forEach {
+            enqueue(it)
+        }
+        start()
+    }
+
+    test(mockServer.url("/").toString())
+
+    mockServer.shutdown()
+}
+
+
+
+// MOCK SERVER RESPONSES
+
+
 
 // General responses
 

@@ -2,36 +2,27 @@ package model
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.io.IOException
 import kotlin.test.assertEquals
 
 /**
- * Includes tests for Api.kt that do not rely on true data from the MBTA API to
- * pass.
+ * Includes tests for ApiCaller.kt that do not rely on true data from the MBTA
+ * API to pass.
  */
-class LocalApiTests {
-    @Test
-    fun testApiInitialization() {
-        val validUrl = "https://www.google.com/"
-        val invalidUrl = "invalidURL"
-
-        assertEquals(MbtaApi.MBTA_API_BASE_URL, MbtaApi().retrofit.baseUrl().toString())
-        assertEquals(validUrl, MbtaApi(validUrl).retrofit.baseUrl().toString())
-        assertThrows<IllegalArgumentException> { MbtaApi(invalidUrl) }
-    }
-
+class LocalApiCallerTests {
     @Test
     fun testGetSubwayRoutesSuccess() {
         testWithMockServer(emptyResponse, singleRoute, threeRoutes) { url ->
-            val service = MbtaApi(url).createService()
+            val apiCaller = MbtaApiCaller(MbtaApi(url))
 
             assertEquals(
                 listOf(),
-                service.getSubwayRoutes().execute().body()
+                apiCaller.getSubwayRoutes()
             )
 
             assertEquals(
                 listOf(Route("Red", "Red Line")),
-                service.getSubwayRoutes().execute().body()
+                apiCaller.getSubwayRoutes()
             )
 
             assertEquals(
@@ -40,7 +31,7 @@ class LocalApiTests {
                     Route("Mattapan", "Mattapan Trolley"),
                     Route("Orange", "Orange Line")
                 ),
-                service.getSubwayRoutes().execute().body()
+                apiCaller.getSubwayRoutes()
             )
         }
     }
@@ -50,14 +41,10 @@ class LocalApiTests {
         testWithMockServer(
             badRequest, forbidden, rateLimited, malformedResponse, singleRouteMissingLongName
         ) { url ->
-            val service = MbtaApi(url).createService()
+            val apiCaller = MbtaApiCaller(MbtaApi(url))
 
-            repeat(3) {
-                assertEquals(false, service.getSubwayRoutes().execute().isSuccessful)
-            }
-
-            repeat(2) {
-                assertThrows<RuntimeException> { service.getSubwayRoutes().execute() }
+            repeat(5) {
+                assertThrows<IOException> { apiCaller.getSubwayRoutes() }
             }
         }
     }
@@ -65,9 +52,9 @@ class LocalApiTests {
     @Test
     fun testGetSubwayRoutesMixedSuccess() {
         testWithMockServer(rateLimited, threeRoutes) { url ->
-            val service = MbtaApi(url).createService()
+            val apiCaller = MbtaApiCaller(MbtaApi(url))
 
-            assertEquals(false, service.getSubwayRoutes().execute().isSuccessful)
+            assertThrows<IOException> { apiCaller.getSubwayRoutes() }
 
             assertEquals(
                 listOf(
@@ -75,7 +62,7 @@ class LocalApiTests {
                     Route("Mattapan", "Mattapan Trolley"),
                     Route("Orange", "Orange Line")
                 ),
-                service.getSubwayRoutes().execute().body()
+                apiCaller.getSubwayRoutes()
             )
         }
     }
