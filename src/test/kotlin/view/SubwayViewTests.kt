@@ -73,7 +73,7 @@ class SubwayViewTests {
     @Test
     fun testRenderAllSubwayRoutes() {
         // Route data has not been loaded
-        val model = MockSubwayModel(listOf())
+        val model = MockSubwayModel()
         var view = TextualSubwayView(model, emptyInput, output)
 
         assertThrows<IllegalStateException> { view.renderAllSubwayRoutes() }
@@ -92,11 +92,10 @@ class SubwayViewTests {
             output.toString()
         )
 
-        // Route data has been loaded
         output.clear()
         view = TextualSubwayView(MockSubwayModel(listOf(
             Route("id1", "Red")
-        ), true), emptyInput, output)
+        ), dataLoaded = true), emptyInput, output)
 
         view.renderAllSubwayRoutes()
         assertEquals(
@@ -108,7 +107,7 @@ class SubwayViewTests {
         view = TextualSubwayView(MockSubwayModel(listOf(
             Route("id1", "Red"),
             Route("id2", "Blue")
-        ), true), emptyInput, output)
+        ), dataLoaded = true), emptyInput, output)
 
         view.renderAllSubwayRoutes()
         assertEquals(
@@ -121,7 +120,7 @@ class SubwayViewTests {
             Route("id1", "Red"),
             Route("id2", "Blue"),
             Route("id3", "Green")
-        ), true), emptyInput, output)
+        ), dataLoaded = true), emptyInput, output)
 
         view.renderAllSubwayRoutes()
         assertEquals(
@@ -136,11 +135,146 @@ class SubwayViewTests {
             Route("id3", "Green"),
             Route("id4", "Bright Orange"),
             Route("id5", "Mysterious Route!")
-        ), true), emptyInput, output)
+        ), dataLoaded = true), emptyInput, output)
 
         view.renderAllSubwayRoutes()
         assertEquals(
             "Red, Blue, Green, Bright Orange, and Mysterious Route!\n",
+            output.toString()
+        )
+    }
+
+    @Test
+    fun testRenderSubwayRouteWithMostStops() {
+        // Route data has not been loaded
+        val model = MockSubwayModel()
+        var view = TextualSubwayView(model, emptyInput, output)
+
+        assertThrows<IllegalStateException> { view.renderSubwayRouteWithMostStops() }
+
+        model.loadRouteData()
+
+        view.renderSubwayRouteWithMostStops()
+        assertEquals(
+            "The model has no subway routes.\n",
+            output.toString()
+        )
+
+        view.renderSubwayRouteWithMostStops()
+        assertEquals(
+            "The model has no subway routes.\nThe model has no subway routes.\n",
+            output.toString()
+        )
+
+        output.clear()
+        view = TextualSubwayView(MockSubwayModel(
+            subwayRouteWithMostStops = Pair(
+                Route("id", "Purple Line"), 7
+            ), dataLoaded = true
+        ), emptyInput, output)
+
+        view.renderSubwayRouteWithMostStops()
+        assertEquals(
+            "The subway route with the most stops is: Purple Line\nThis route has 7 stops.\n",
+            output.toString()
+        )
+    }
+
+    @Test
+    fun testRenderSubwayRouteWithFewestStops() {
+        // Route data has not been loaded
+        val model = MockSubwayModel()
+        var view = TextualSubwayView(model, emptyInput, output)
+
+        assertThrows<IllegalStateException> { view.renderSubwayRouteWithFewestStops() }
+
+        model.loadRouteData()
+
+        view.renderSubwayRouteWithFewestStops()
+        assertEquals(
+            "The model has no subway routes.\n",
+            output.toString()
+        )
+
+        view.renderSubwayRouteWithFewestStops()
+        assertEquals(
+            "The model has no subway routes.\nThe model has no subway routes.\n",
+            output.toString()
+        )
+
+        output.clear()
+        view = TextualSubwayView(MockSubwayModel(
+            subwayRouteWithFewestStops = Pair(
+                Route("id", "Purple Line"), 7
+            ), dataLoaded = true
+        ), emptyInput, output)
+
+        view.renderSubwayRouteWithFewestStops()
+        assertEquals(
+            "The subway route with the fewest stops is: Purple Line\nThis route has 7 stops.\n",
+            output.toString()
+        )
+    }
+
+    @Test
+    fun testRenderSubwayTransferStops() {
+        // Route data has not been loaded
+        val model = MockSubwayModel()
+        var view = TextualSubwayView(model, emptyInput, output)
+
+        assertThrows<IllegalStateException> { view.renderSubwayTransferStops() }
+
+        model.loadRouteData()
+
+        view.renderSubwayTransferStops()
+        assertEquals(
+            "There are no subway transfer stops.\n",
+            output.toString()
+        )
+
+        view.renderSubwayTransferStops()
+        assertEquals(
+            "There are no subway transfer stops.\nThere are no subway transfer stops.\n",
+            output.toString()
+        )
+
+        output.clear()
+        view = TextualSubwayView(MockSubwayModel(
+            transferStops = mapOf(
+                "Fake Stop" to listOf(
+                    Route("id1", "Pink Line"),
+                    Route("id2", "Yellow Line")
+                )
+            ), dataLoaded = true
+        ), emptyInput, output)
+
+        view.renderSubwayTransferStops()
+        assertEquals(
+            "The subway transfer stops, followed by the routes they connect, are:\n\n"
+            + "Fake Stop: Pink Line and Yellow Line\n",
+            output.toString()
+        )
+
+        output.clear()
+        view = TextualSubwayView(MockSubwayModel(
+            transferStops = mapOf(
+                "Fake Stop" to listOf(
+                    Route("id1", "Pink Line"),
+                    Route("id2", "Yellow Line")
+                ),
+                "Northeastern University" to listOf(
+                    Route("id3", "Boston Line"),
+                    Route("id4", "Canada Line"),
+                    Route("id5", "Ocean Line")
+                )
+            ), dataLoaded = true
+        ), emptyInput, output)
+
+        view.renderSubwayTransferStops()
+        assertEquals(
+            "The subway transfer stops, followed by the routes they connect, are:\n\n"
+                    + "Fake Stop: Pink Line and Yellow Line\n"
+                    + "Northeastern University: Boston Line, Canada Line, and Ocean Line\n",
             output.toString()
         )
     }

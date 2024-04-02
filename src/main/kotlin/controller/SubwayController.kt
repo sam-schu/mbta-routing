@@ -34,6 +34,10 @@ class MbtaSubwayController : SubwayController {
     private val commandInfo = """
         1: Reload the data from the MBTA server.
         2: List the names of all subway routes.
+        3: List the subway route with the most stops.
+        4: List the subway route with the fewest stops.
+        5: List the subway transfer stops (the stops
+           connecting multiple subway routes).
         q: Quit the program.
     """.trimIndent()
 
@@ -43,6 +47,9 @@ class MbtaSubwayController : SubwayController {
     private val commandMap: Map<String, () -> Boolean> = mapOf(
         "1" to ::reloadData,
         "2" to ::listSubwayRoutes,
+        "3" to ::listRouteWithMostStops,
+        "4" to ::listRouteWithFewestStops,
+        "5" to ::listSubwayTransferStops,
         "q" to ::quit
     )
 
@@ -134,6 +141,45 @@ class MbtaSubwayController : SubwayController {
         try {
             view.renderStringLn("The names of all MBTA subway routes are:")
             view.renderAllSubwayRoutes()
+        } catch (_: IllegalStateException) {
+            view.renderStringLn("An unexpected error occurred when attempting to access the")
+            view.renderStringLn("route data. Please try again.\n")
+        }
+        return false
+    }
+
+    // Attempts to display the subway route with the most stops; displays an
+    // error message if this fails. Returns false to indicate that the program
+    // should not quit.
+    private fun listRouteWithMostStops(): Boolean {
+        try {
+            view.renderSubwayRouteWithMostStops()
+        } catch (_: IllegalStateException) {
+            view.renderStringLn("An unexpected error occurred when attempting to access the")
+            view.renderStringLn("route data. Please try again.\n")
+        }
+        return false
+    }
+
+    // Attempts to display the subway route with the fewest stops; displays an
+    // error message if this fails. Returns false to indicate that the program
+    // should not quit.
+    private fun listRouteWithFewestStops(): Boolean {
+        try {
+            view.renderSubwayRouteWithFewestStops()
+        } catch (_: IllegalStateException) {
+            view.renderStringLn("An unexpected error occurred when attempting to access the")
+            view.renderStringLn("route data. Please try again.\n")
+        }
+        return false
+    }
+
+    // Attempts to display all stops connecting multiple subway routes; displays
+    // an error message if this fails. Returns false to indicate that the
+    // program should not quit.
+    private fun listSubwayTransferStops(): Boolean {
+        try {
+            view.renderSubwayTransferStops()
         } catch (_: IllegalStateException) {
             view.renderStringLn("An unexpected error occurred when attempting to access the")
             view.renderStringLn("route data. Please try again.\n")

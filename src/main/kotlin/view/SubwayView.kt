@@ -29,6 +29,36 @@ interface SubwayView {
     fun renderAllSubwayRoutes()
 
     /**
+     * Outputs the name of the subway route stored by the view's associated
+     * subway model that has the most stops, as well as how many stops it has.
+     * A line break follows the output.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the subway model associated with the view.
+     */
+    fun renderSubwayRouteWithMostStops()
+
+    /**
+     * Outputs the name of the subway route stored by the view's associated
+     * subway model that has the fewest stops, as well as how many stops it has.
+     * A line break follows the output.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the subway model associated with the view.
+     */
+    fun renderSubwayRouteWithFewestStops()
+
+    /**
+     * Outputs the name of each subway stop that connects multiple subway
+     * routes, as well as the names of the routes connected by each of these
+     * stops. A line break follows the output.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the subway model associated with the view.
+     */
+    fun renderSubwayTransferStops()
+
+    /**
      * Blocks if necessary to read a line of input, and then returns the
      * inputted string (without the line separator character at the end if
      * originally present).
@@ -65,6 +95,46 @@ class TextualSubwayView(
     override fun renderAllSubwayRoutes() {
         val routeNames = model.getSubwayRoutes().map { it.name }
         renderStringLn(formatList(routeNames))
+    }
+
+    override fun renderSubwayRouteWithMostStops() {
+        val routePair = model.getSubwayRouteWithMostStops()
+        if (routePair == null) {
+            renderStringLn("The model has no subway routes.")
+        } else {
+            val (route, numStops) = routePair
+            renderStringLn("The subway route with the most stops is: ${route.name}")
+            renderStringLn("This route has $numStops stops.")
+        }
+    }
+
+    override fun renderSubwayRouteWithFewestStops() {
+        val routePair = model.getSubwayRouteWithFewestStops()
+        if (routePair == null) {
+            renderStringLn("The model has no subway routes.")
+        } else {
+            val (route, numStops) = routePair
+            renderStringLn("The subway route with the fewest stops is: ${route.name}")
+            renderStringLn("This route has $numStops stops.")
+        }
+    }
+
+    override fun renderSubwayTransferStops() {
+        val transferStopsMap = model.getTransferStops()
+        var routeNames: List<String>
+
+        if (transferStopsMap.isEmpty()) {
+            renderStringLn("There are no subway transfer stops.")
+        } else {
+            renderStringLn(
+                "The subway transfer stops, followed by the routes they connect, are:\n"
+            )
+
+            transferStopsMap.forEach { (stopName, routesConnected) ->
+                routeNames = routesConnected.map { it.name }
+                renderStringLn("$stopName: ${formatList(routeNames)}")
+            }
+        }
     }
 
     override fun inputLine(): String {

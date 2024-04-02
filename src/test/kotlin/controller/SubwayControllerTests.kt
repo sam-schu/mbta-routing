@@ -147,6 +147,149 @@ class SubwayControllerTests {
     }
 
     @Test
+    fun testCommand3Success() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("3\nq\n")
+            val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                model, TextualSubwayView(model, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert(
+                "Please enter one of the following options (before the colon):" in output.toString()
+            )
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("An unexpected error occurred" !in output.toString())
+            assert("The subway route with the most stops is: Red Line" in output.toString())
+            assert("This route has 22 stops." in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand3Failure() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("3\nq\n")
+            val wrongModelForView = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                threeRoutesModel, TextualSubwayView(wrongModelForView, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert("Please enter one of the following options (before the colon):" in output.toString())
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("Red" !in output.toString())
+            assert("An unexpected error occurred when attempting to access the\nroute data."
+                    in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand4Success() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("4\nq\n")
+            val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                model, TextualSubwayView(model, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert(
+                "Please enter one of the following options (before the colon):" in output.toString()
+            )
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("An unexpected error occurred" !in output.toString())
+            assert("The subway route with the most stops is: Red Line" !in output.toString())
+            assert("This route has 22 stops." !in output.toString())
+            assert("The subway route with the fewest stops is: Mattapan Trolley" in output.toString())
+            assert("This route has 8 stops." in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand4Failure() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("4\nq\n")
+            val wrongModelForView = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                threeRoutesModel, TextualSubwayView(wrongModelForView, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert("Please enter one of the following options (before the colon):" in output.toString())
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("Mattapan" !in output.toString())
+            assert("An unexpected error occurred when attempting to access the\nroute data."
+                    in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand5Success() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("5\nq\n")
+            val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                model, TextualSubwayView(model, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert(
+                "Please enter one of the following options (before the colon):" in output.toString()
+            )
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("An unexpected error occurred" !in output.toString())
+            assert("The subway route with the most stops is: Red Line" !in output.toString())
+            assert(
+                "The subway route with the fewest stops is: Mattapan Trolley" !in output.toString()
+            )
+            assert("""
+                The subway transfer stops, followed by the routes they connect, are:
+                
+                Downtown Crossing: Red Line and Orange Line
+                Ashmont: Red Line and Mattapan Trolley
+                
+            """.trimIndent() in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand5Failure() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("5\nq\n")
+            val wrongModelForView = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                threeRoutesModel, TextualSubwayView(wrongModelForView, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert("Please enter one of the following options (before the colon):" in output.toString())
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("Ashmont" !in output.toString())
+            assert("An unexpected error occurred when attempting to access the\nroute data."
+                    in output.toString())
+        }
+    }
+
+    @Test
     fun testQuit() {
         val input = StringReader("q\n")
         val controller = MbtaSubwayController(
@@ -183,6 +326,10 @@ class SubwayControllerTests {
                     Please enter one of the following options (before the colon):
                     1: Reload the data from the MBTA server.
                     2: List the names of all subway routes.
+                    3: List the subway route with the most stops.
+                    4: List the subway route with the fewest stops.
+                    5: List the subway transfer stops (the stops
+                       connecting multiple subway routes).
                     q: Quit the program.
 
 
@@ -191,6 +338,10 @@ class SubwayControllerTests {
                     Please enter one of the following options (before the colon):
                     1: Reload the data from the MBTA server.
                     2: List the names of all subway routes.
+                    3: List the subway route with the most stops.
+                    4: List the subway route with the fewest stops.
+                    5: List the subway transfer stops (the stops
+                       connecting multiple subway routes).
                     q: Quit the program.
 
 
@@ -200,6 +351,10 @@ class SubwayControllerTests {
                     Please enter one of the following options (before the colon):
                     1: Reload the data from the MBTA server.
                     2: List the names of all subway routes.
+                    3: List the subway route with the most stops.
+                    4: List the subway route with the fewest stops.
+                    5: List the subway transfer stops (the stops
+                       connecting multiple subway routes).
                     q: Quit the program.
 
 
@@ -210,6 +365,10 @@ class SubwayControllerTests {
                     Please enter one of the following options (before the colon):
                     1: Reload the data from the MBTA server.
                     2: List the names of all subway routes.
+                    3: List the subway route with the most stops.
+                    4: List the subway route with the fewest stops.
+                    5: List the subway transfer stops (the stops
+                       connecting multiple subway routes).
                     q: Quit the program.
 
 
@@ -219,6 +378,10 @@ class SubwayControllerTests {
                     Please enter one of the following options (before the colon):
                     1: Reload the data from the MBTA server.
                     2: List the names of all subway routes.
+                    3: List the subway route with the most stops.
+                    4: List the subway route with the fewest stops.
+                    5: List the subway transfer stops (the stops
+                       connecting multiple subway routes).
                     q: Quit the program.
 
 
@@ -227,6 +390,10 @@ class SubwayControllerTests {
                     Please enter one of the following options (before the colon):
                     1: Reload the data from the MBTA server.
                     2: List the names of all subway routes.
+                    3: List the subway route with the most stops.
+                    4: List the subway route with the fewest stops.
+                    5: List the subway transfer stops (the stops
+                       connecting multiple subway routes).
                     q: Quit the program.
 
 
@@ -236,6 +403,10 @@ class SubwayControllerTests {
                     Please enter one of the following options (before the colon):
                     1: Reload the data from the MBTA server.
                     2: List the names of all subway routes.
+                    3: List the subway route with the most stops.
+                    4: List the subway route with the fewest stops.
+                    5: List the subway transfer stops (the stops
+                       connecting multiple subway routes).
                     q: Quit the program.
 
 
