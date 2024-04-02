@@ -75,6 +75,12 @@ internal interface ApiService {
     /**
      * Returns a call to obtain a list of all subway routes (routes of the Light
      * Rail or Heavy Rail type) from the API.
+     *
+     * Implementation note: Filtering is performed using the server API rather
+     * than locally to avoid downloading significant amounts of unnecessary data
+     * from the server, which could waste network bandwidth and potentially
+     * degrade the speed of the application (due to a slow download speed and/or
+     * the time required for the additional local filtering work).
      */
     @GET(MbtaApi.SUBWAY_ROUTES_ENDPOINT)
     fun getSubwayRoutes(): Call<List<Route>>
