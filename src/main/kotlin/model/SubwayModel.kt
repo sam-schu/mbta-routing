@@ -1,6 +1,5 @@
 package model
 
-import model.graph.MbtaTransitGraph
 import java.io.IOException
 
 /**

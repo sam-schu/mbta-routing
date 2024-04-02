@@ -1,6 +1,5 @@
-package model.graph
+package model
 
-import model.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals

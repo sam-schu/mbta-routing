@@ -1,8 +1,8 @@
-package model.graph
+package model
 
-import model.RoutePattern
-import model.Stop
-import java.util.*
+import java.util.Objects
+import java.util.Queue
+import java.util.LinkedList
 import kotlin.collections.HashMap
 
 /**
