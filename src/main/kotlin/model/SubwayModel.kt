@@ -69,6 +69,30 @@ interface SubwayModel {
      * loaded into the model.
      */
     fun getTransferStops(): Map<String, List<Route>>
+
+    /**
+     * Returns a path from the given source station to the given destination
+     * station.
+     *
+     * The source and destination stations must be given by their names, not
+     * their IDs. The path is returned as a list of pairs, where each pair
+     * represents (1) the route to take to the next stop and (2) the name of the
+     * next stop. (The source station is not included in the returned path.) The
+     * path returned is a path requiring the least number of stops to get from
+     * the source to the destination.
+     *
+     * Null is returned if no path can be found from the source station to the
+     * destination station. This includes if the source and destination stations
+     * are the same.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the model.
+     * @throws IllegalArgumentException if a station with the given source or
+     * destination name cannot be found.
+     */
+    fun findPath(
+        sourceStationName: String, destStationName: String
+    ): List<Pair<Route, String>>?
 }
 
 /**
@@ -202,5 +226,40 @@ class MbtaSubwayModel : MutableSubwayModel {
         return subwayGraph?.stationNodes?.filter { it.routeIds.size >= 2 }?.associate {
             Pair(it.name, it.routeIds.map { id -> getRouteFromId(id) })
         } ?: throw IllegalStateException("The route data has not been loaded yet.")
+    }
+
+    /**
+     * Returns a path from the given source station to the given destination
+     * station.
+     *
+     * The source and destination stations must be given by their names, not
+     * their IDs. The path is returned as a list of pairs, where each pair
+     * represents (1) the route to take to the next stop and (2) the name of the
+     * next stop. (The source station is not included in the returned path.) The
+     * path returned is a path requiring the least number of stops to get from
+     * the source to the destination.
+     *
+     * Null is returned if no path can be found from the source station to the
+     * destination station. This includes if the source and destination stations
+     * are the same.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the model using the [loadRouteData] method.
+     * @throws IllegalArgumentException if a station with the given source or
+     * destination name cannot be found.
+     */
+    override fun findPath(
+        sourceStationName: String,
+        destStationName: String
+    ): List<Pair<Route, String>>? {
+        subwayGraph?.let {
+            return it.findPath(sourceStationName, destStationName)?.map { (routeId, stopName) ->
+                Pair(
+                    getRouteFromId(routeId),
+                    stopName
+                )
+            }
+        }
+        throw IllegalStateException("The route data has not been loaded yet.")
     }
 }

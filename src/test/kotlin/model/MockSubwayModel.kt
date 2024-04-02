@@ -45,4 +45,11 @@ class MockSubwayModel(
     override fun getTransferStops(): Map<String, List<Route>> {
         TODO("Not yet implemented")
     }
+
+    override fun findPath(
+        sourceStationName: String,
+        destStationName: String
+    ): List<Pair<Route, String>>? {
+        TODO("Not yet implemented")
+    }
 }
