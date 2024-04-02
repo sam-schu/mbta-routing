@@ -14,6 +14,19 @@ internal interface ApiCaller {
      * prevents a valid list of Routes from being obtained.
      */
     fun getSubwayRoutes(): List<Route>
+
+    /**
+     * Returns all canonical route patterns associated with the given list of
+     * routes (based on their IDs).
+     *
+     * Canonical route patterns associated with replacement shuttles for the
+     * provided routes will not be included (unless the replacement shuttles
+     * themselves are included in the given list of routes).
+     *
+     * @throws IOException if any server- or parsing-related error occurs that
+     * prevents a valid list of RoutePatterns from being obtained.
+     */
+    fun getCanonicalRoutePatterns(routes: List<Route>): List<RoutePattern>
 }
 
 /**
@@ -28,6 +41,21 @@ internal class MbtaApiCaller(api: Api = MbtaApi()) : ApiCaller {
 
     override fun getSubwayRoutes(): List<Route> {
         return performCall(apiService.getSubwayRoutes())
+    }
+
+    override fun getCanonicalRoutePatterns(routes: List<Route>): List<RoutePattern> {
+        val routeIds = routes.map { it.id }
+        val filterString = routeIds.joinToString(separator = ",")
+        val routePatterns = performCall(apiService.getCanonicalRoutePatterns(filterString))
+
+        // Removes unwanted replacement shuttle route patterns.
+        return routePatterns.filter {
+            if (it.route == null) {
+                false
+            } else {
+                it.route.id in routeIds
+            }
+        }
     }
 
     // Synchronously executes the given call; returns the body if the call was

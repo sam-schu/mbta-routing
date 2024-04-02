@@ -87,6 +87,9 @@ internal interface ApiService {
      * the ordered list of stops that may typically be transited through along
      * a route.
      *
+     * Route patterns associated with replacement shuttles for the given routes
+     * may be included.
+     *
      * @param routes the set of routes whose canonical route patterns should be
      * obtained. Must be formatted as a set of route IDs separated only by
      * commas (e.g., "Red,Blue").

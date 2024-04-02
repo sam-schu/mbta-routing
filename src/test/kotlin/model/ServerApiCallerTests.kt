@@ -27,4 +27,14 @@ class ServerApiCallerTests {
             apiCaller.getSubwayRoutes()
         )
     }
+
+    @Test
+    fun testGetCanonicalRoutePatterns() {
+        val apiCaller = MbtaApiCaller()
+
+        assertEquals(
+            18,
+            apiCaller.getCanonicalRoutePatterns(apiCaller.getSubwayRoutes()).size
+        )
+    }
 }
