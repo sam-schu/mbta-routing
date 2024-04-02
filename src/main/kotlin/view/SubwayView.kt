@@ -1,5 +1,6 @@
 package view
 
+import model.Route
 import model.SubwayModel
 import java.util.Scanner
 
@@ -57,6 +58,23 @@ interface SubwayView {
      * loaded into the subway model associated with the view.
      */
     fun renderSubwayTransferStops()
+
+    /**
+     * Outputs directions to travel by subway from the source station with the
+     * given name to the destination station with the given name. A line break
+     * follows the output.
+     *
+     * The outputted directions include the intermediate stops to travel to and
+     * the subway routes to ride. The output may be that there is no path from
+     * the source to the destination; this will be the result if the provided
+     * source and destination represent the same station.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the subway model associated with the view.
+     * @throws IllegalArgumentException if either provided station name does not
+     * correspond to a stop in the subway model associated with the view.
+     */
+    fun renderPath(sourceStopName: String, destStopName: String)
 
     /**
      * Blocks if necessary to read a line of input, and then returns the
@@ -134,6 +152,28 @@ class TextualSubwayView(
                 routeNames = routesConnected.map { it.name }
                 renderStringLn("$stopName: ${formatList(routeNames)}")
             }
+        }
+    }
+
+    override fun renderPath(sourceStopName: String, destStopName: String) {
+        val path = model.findPath(sourceStopName, destStopName)
+        var currentRoute: Route? = null
+
+        if (path == null) {
+            renderStringLn("A route between these stops could not be calculated.")
+        } else {
+            for ((route, stopName) in path) {
+                if (currentRoute == null) {
+                    currentRoute = route
+                    renderStringLn(sourceStopName.trim())
+                    renderStringLn("~ Board a ${route.name} train. ~")
+                } else if (currentRoute != route) {
+                    currentRoute = route
+                    renderStringLn("~ Transfer to a ${route.name} train. ~")
+                }
+                renderStringLn("  |\n  |\n  |\n$stopName")
+            }
+            renderStringLn("\nYou will have arrived at your destination!")
         }
     }
 

@@ -280,6 +280,90 @@ class SubwayViewTests {
     }
 
     @Test
+    fun testRenderPath() {
+        // Route data has not been loaded
+        val model = MockSubwayModel()
+        var view = TextualSubwayView(model, emptyInput, output)
+
+        assertThrows<IllegalStateException> { view.renderPath("a", "b") }
+
+        model.loadRouteData()
+
+        output.clear()
+        view = TextualSubwayView(MockSubwayModel(
+            path = null, dataLoaded = true
+        ), emptyInput, output)
+
+        view.renderPath("Shawmut", "Ashmont")
+        assertEquals(
+            "A route between these stops could not be calculated.\n",
+            output.toString()
+        )
+
+        output.clear()
+        view = TextualSubwayView(MockSubwayModel(
+            path = listOf(
+                Pair(Route("Red", "Red Line"), "Ashmont")
+            ), dataLoaded = true
+        ), emptyInput, output)
+
+        view.renderPath("Shawmut", "Ashmont")
+        assertEquals(
+            """
+                Shawmut
+                ~ Board a Red Line train. ~
+                  |
+                  |
+                  |
+                Ashmont
+                
+                You will have arrived at your destination!
+                
+            """.trimIndent(),
+            output.toString()
+        )
+
+        output.clear()
+        view = TextualSubwayView(MockSubwayModel(
+            path = listOf(
+                Pair(Route("Red", "Red Line"), "Shawmut"),
+                Pair(Route("Red", "Red Line"), "Ashmont"),
+                Pair(Route("Mattapan", "Mattapan Trolley"), "Cedar Grove"),
+                Pair(Route("Mattapan", "Mattapan Trolley"), "Butler")
+            ), dataLoaded = true
+        ), emptyInput, output)
+
+        view.renderPath("Fields Corner", "Butler")
+        assertEquals(
+            """
+                Fields Corner
+                ~ Board a Red Line train. ~
+                  |
+                  |
+                  |
+                Shawmut
+                  |
+                  |
+                  |
+                Ashmont
+                ~ Transfer to a Mattapan Trolley train. ~
+                  |
+                  |
+                  |
+                Cedar Grove
+                  |
+                  |
+                  |
+                Butler
+                
+                You will have arrived at your destination!
+                
+            """.trimIndent(),
+            output.toString()
+        )
+    }
+
+    @Test
     fun testInputLine() {
         var input = StringReader("")
         var view = TextualSubwayView(basicModel, input, output)

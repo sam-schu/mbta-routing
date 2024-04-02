@@ -49,7 +49,8 @@ internal class MbtaTransitGraph(
     // Gets the station node with the given name, or throws an
     // IllegalArgumentException if no such node exists.
     private fun getStationNodeFromName(name: String): StationNode {
-        return stationNodes.find { it.name == name } ?: throw IllegalArgumentException(
+        return stationNodes.find { it.name.lowercase() == name.lowercase() } ?: throw
+        IllegalArgumentException(
             "The specified station could not be found."
         )
     }

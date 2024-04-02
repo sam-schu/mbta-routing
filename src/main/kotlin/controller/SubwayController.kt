@@ -38,6 +38,7 @@ class MbtaSubwayController : SubwayController {
         4: List the subway route with the fewest stops.
         5: List the subway transfer stops (the stops
            connecting multiple subway routes).
+        6: Find a route from one stop to another.
         q: Quit the program.
     """.trimIndent()
 
@@ -50,6 +51,7 @@ class MbtaSubwayController : SubwayController {
         "3" to ::listRouteWithMostStops,
         "4" to ::listRouteWithFewestStops,
         "5" to ::listSubwayTransferStops,
+        "6" to ::findPath,
         "q" to ::quit
     )
 
@@ -183,6 +185,37 @@ class MbtaSubwayController : SubwayController {
         } catch (_: IllegalStateException) {
             view.renderStringLn("An unexpected error occurred when attempting to access the")
             view.renderStringLn("route data. Please try again.\n")
+        }
+        return false
+    }
+
+    // Attempts to input a source and destination stop from the user and display
+    // a path between them; displays an error message if this fails. Returns
+    // whether the program should quit based on whether a fatal input error
+    // occurred.
+    private fun findPath(): Boolean {
+        try {
+            view.renderStringLn("Please enter the name of the stop to start from:")
+            val sourceStopName = view.inputLine().trim()
+
+            view.renderStringLn("\nPlease enter the name of the destination stop:")
+            val destStopName = view.inputLine().trim()
+
+            if (sourceStopName.lowercase() == destStopName.lowercase()) {
+                view.renderStringLn("\nYou cannot get a route from a station to itself!")
+                return false
+            }
+
+            view.renderStringLn()
+            view.renderPath(sourceStopName, destStopName)
+        } catch (_: NoSuchElementException) {
+            view.renderStringLn("A fatal error occurred while attempting to read input.\n")
+            return true
+        } catch (_: IllegalStateException) {
+            view.renderStringLn("An unexpected error occurred when attempting to access the")
+            view.renderStringLn("route data. Please try again.\n")
+        } catch (_: IllegalArgumentException) {
+            view.renderStringLn("The stop names provided were not recognized.")
         }
         return false
     }

@@ -181,7 +181,8 @@ class SubwayControllerTests {
             controller.start()
 
             assert("Welcome to the MBTA subway routing program!" in output.toString())
-            assert("Please enter one of the following options (before the colon):" in output.toString())
+            assert("Please enter one of the following options (before the colon):"
+                    in output.toString())
             assert("A fatal error occurred" !in output.toString())
             assert("The option entered was not recognized." !in output.toString())
             assert("Red" !in output.toString())
@@ -210,7 +211,8 @@ class SubwayControllerTests {
             assert("An unexpected error occurred" !in output.toString())
             assert("The subway route with the most stops is: Red Line" !in output.toString())
             assert("This route has 22 stops." !in output.toString())
-            assert("The subway route with the fewest stops is: Mattapan Trolley" in output.toString())
+            assert("The subway route with the fewest stops is: Mattapan Trolley"
+                    in output.toString())
             assert("This route has 8 stops." in output.toString())
         }
     }
@@ -227,7 +229,8 @@ class SubwayControllerTests {
             controller.start()
 
             assert("Welcome to the MBTA subway routing program!" in output.toString())
-            assert("Please enter one of the following options (before the colon):" in output.toString())
+            assert("Please enter one of the following options (before the colon):"
+                    in output.toString())
             assert("A fatal error occurred" !in output.toString())
             assert("The option entered was not recognized." !in output.toString())
             assert("Mattapan" !in output.toString())
@@ -280,12 +283,152 @@ class SubwayControllerTests {
             controller.start()
 
             assert("Welcome to the MBTA subway routing program!" in output.toString())
-            assert("Please enter one of the following options (before the colon):" in output.toString())
+            assert("Please enter one of the following options (before the colon):"
+                    in output.toString())
             assert("A fatal error occurred" !in output.toString())
             assert("The option entered was not recognized." !in output.toString())
             assert("Ashmont" !in output.toString())
             assert("An unexpected error occurred when attempting to access the\nroute data."
                     in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand6Success() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("6\nRuggles\nCedar Grove\nq\n")
+            val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                model, TextualSubwayView(model, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert(
+                "Please enter one of the following options (before the colon):" in output.toString()
+            )
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("An unexpected error occurred" !in output.toString())
+            assert("Board a Orange Line train" in output.toString())
+            assert("Ruggles" in output.toString())
+            assert("Chinatown" in output.toString())
+            assert("Savin Hill" in output.toString())
+            assert("Cedar Grove" in output.toString())
+            assert("You will have arrived at your destination!" in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand6SameStationTwice() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("6\n     cedar grove  \nCedar Grove\nq\n")
+            val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                model, TextualSubwayView(model, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert(
+                "Please enter one of the following options (before the colon):" in output.toString()
+            )
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("An unexpected error occurred" !in output.toString())
+            assert("Board a Mattapan Trolley train" !in output.toString())
+            assert("You will have arrived at your destination!" !in output.toString())
+            assert("You cannot get a route from a station to itself!" in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand6NoMoreInputAfterFirstStation() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("6\nNortheastern University")
+            val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                model, TextualSubwayView(model, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert(
+                "Please enter one of the following options (before the colon):" in output.toString()
+            )
+            assert("Please enter the name of the stop to start from" in output.toString())
+            assert("A fatal error occurred" in output.toString())
+            assert("You will have arrived at your destination!" !in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand6DataNotLoaded() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("6\nRuggles\nSouth Station\nq\n")
+            val wrongModelForView = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                threeRoutesModel, TextualSubwayView(wrongModelForView, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert("Please enter one of the following options (before the colon):"
+                    in output.toString())
+            assert("A fatal error occurred" !in output.toString())
+            assert("The option entered was not recognized." !in output.toString())
+            assert("You will have arrived at your destination!" !in output.toString())
+            assert("An unexpected error occurred when attempting to access the\nroute data."
+                    in output.toString())
+        }
+    }
+
+    @Test
+    fun testCommand6InvalidStationName() {
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("6\nNortheastern University\nRugles\nq\n")
+            val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                model, TextualSubwayView(model, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert(
+                "Please enter one of the following options (before the colon):" in output.toString()
+            )
+            assert("Please enter the name of the stop to start from" in output.toString())
+            assert("A fatal error occurred" !in output.toString())
+            assert("You will have arrived at your destination!" !in output.toString())
+            assert("An unexpected error occurred when attempting to access the\nroute data."
+                    !in output.toString())
+            assert("The stop names provided were not recognized." in output.toString())
+        }
+
+        testWithMockServer(threeRoutes, threeRoutesRoutePatterns) { url ->
+            val input = StringReader("6\nNorthwestern University\nRuggles\nq\n")
+            val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
+            val controller = MbtaSubwayController(
+                model, TextualSubwayView(model, input, output), false
+            )
+
+            controller.start()
+
+            assert("Welcome to the MBTA subway routing program!" in output.toString())
+            assert(
+                "Please enter one of the following options (before the colon):" in output.toString()
+            )
+            assert("Please enter the name of the stop to start from" in output.toString())
+            assert("A fatal error occurred" !in output.toString())
+            assert("You will have arrived at your destination!" !in output.toString())
+            assert("An unexpected error occurred when attempting to access the\nroute data."
+                    !in output.toString())
+            assert("The stop names provided were not recognized." in output.toString())
         }
     }
 
@@ -330,6 +473,7 @@ class SubwayControllerTests {
                     4: List the subway route with the fewest stops.
                     5: List the subway transfer stops (the stops
                        connecting multiple subway routes).
+                    6: Find a route from one stop to another.
                     q: Quit the program.
 
 
@@ -342,6 +486,7 @@ class SubwayControllerTests {
                     4: List the subway route with the fewest stops.
                     5: List the subway transfer stops (the stops
                        connecting multiple subway routes).
+                    6: Find a route from one stop to another.
                     q: Quit the program.
 
 
@@ -355,6 +500,7 @@ class SubwayControllerTests {
                     4: List the subway route with the fewest stops.
                     5: List the subway transfer stops (the stops
                        connecting multiple subway routes).
+                    6: Find a route from one stop to another.
                     q: Quit the program.
 
 
@@ -369,6 +515,7 @@ class SubwayControllerTests {
                     4: List the subway route with the fewest stops.
                     5: List the subway transfer stops (the stops
                        connecting multiple subway routes).
+                    6: Find a route from one stop to another.
                     q: Quit the program.
 
 
@@ -382,6 +529,7 @@ class SubwayControllerTests {
                     4: List the subway route with the fewest stops.
                     5: List the subway transfer stops (the stops
                        connecting multiple subway routes).
+                    6: Find a route from one stop to another.
                     q: Quit the program.
 
 
@@ -394,6 +542,7 @@ class SubwayControllerTests {
                     4: List the subway route with the fewest stops.
                     5: List the subway transfer stops (the stops
                        connecting multiple subway routes).
+                    6: Find a route from one stop to another.
                     q: Quit the program.
 
 
@@ -407,6 +556,7 @@ class SubwayControllerTests {
                     4: List the subway route with the fewest stops.
                     5: List the subway transfer stops (the stops
                        connecting multiple subway routes).
+                    6: Find a route from one stop to another.
                     q: Quit the program.
 
 
