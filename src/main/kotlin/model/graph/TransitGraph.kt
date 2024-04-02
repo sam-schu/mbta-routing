@@ -14,7 +14,7 @@ import kotlin.collections.HashMap
  *
  * @property stationNodes the nodes of the graph.
  */
-class MbtaTransitGraph internal constructor(
+internal class MbtaTransitGraph(
     internal val stationNodes: MutableList<StationNode>
 ) {
     companion object {

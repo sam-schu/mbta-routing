@@ -1,5 +1,6 @@
 package model
 
+import model.graph.MbtaTransitGraph
 import java.io.IOException
 
 /**
@@ -37,6 +38,37 @@ interface SubwayModel {
      * loaded into the model.
      */
     fun getSubwayRoutes(): List<Route>
+
+    /**
+     * Returns a pair containing the model's subway route with the most stops,
+     * and its number of stops.
+     *
+     * Returns null if the model has no subway routes.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the model.
+     */
+    fun getSubwayRouteWithMostStops(): Pair<Route, Int>?
+
+    /**
+     * Returns a pair containing the model's subway route with the fewest stops,
+     * and its number of stops.
+     *
+     * Returns null if the model has no subway routes.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the model.
+     */
+    fun getSubwayRouteWithFewestStops(): Pair<Route, Int>?
+
+    /**
+     * Returns a map from the name of each stop that connects two or more subway
+     * routes to the list of routes that it connects.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the model.
+     */
+    fun getTransferStops(): Map<String, List<Route>>
 }
 
 /**
@@ -46,6 +78,10 @@ interface SubwayModel {
 class MbtaSubwayModel : MutableSubwayModel {
     private val apiCaller: ApiCaller
     private var routes: List<Route>? = null
+    private var subwayGraph: MbtaTransitGraph? = null
+
+    // Maps each route to the number of stops on it.
+    private var stopsPerRoute: Map<Route, Int>? = null
 
     /**
      * Creates the model with a default API caller that will get subway data
@@ -71,7 +107,41 @@ class MbtaSubwayModel : MutableSubwayModel {
      * prevents valid route data from being obtained.
      */
     override fun loadRouteData() {
-        routes = apiCaller.getSubwayRoutes()
+        routes = apiCaller.getSubwayRoutes().also {
+            subwayGraph = MbtaTransitGraph.fromRoutePatterns(
+                apiCaller.getCanonicalRoutePatterns(it)
+            )
+        }
+        populateStopsPerRoute()
+    }
+
+    // Populates the stopsPerRoute map using the loaded routes and subway graph.
+    private fun populateStopsPerRoute() {
+        var route: Route
+        val routeStopsMap: MutableMap<Route, Int> = hashMapOf()
+        routes?.forEach { routeStopsMap[it] = 0 }
+        subwayGraph?.let {
+            for (station in it.stationNodes) {
+                for (routeId in station.routeIds) {
+                    route = getRouteFromId(routeId)
+                    routeStopsMap[route] = routeStopsMap.getValue(route) + 1
+                }
+            }
+        }
+        stopsPerRoute = routeStopsMap
+    }
+
+    // Returns the Route from the model's list of routes with the given ID.
+    // Throws an IllegalStateException if the route data has not been
+    // successfully loaded into the model yet, or an IllegalArgumentException if
+    // a route with the given ID cannot be found.
+    private fun getRouteFromId(id: String): Route {
+        routes?.let {
+            return it.find { route -> route.id == id } ?: throw IllegalArgumentException(
+                "The specified route could not be found."
+            )
+        }
+        throw IllegalStateException("The route data has not been loaded yet.")
     }
 
     /**
@@ -85,5 +155,52 @@ class MbtaSubwayModel : MutableSubwayModel {
      */
     override fun getSubwayRoutes(): List<Route> {
         return routes ?: throw IllegalStateException("The route data has not been loaded yet.")
+    }
+
+    /**
+     * Returns a pair containing the model's subway route with the most stops,
+     * and its number of stops.
+     *
+     * Returns null if the model has no subway routes.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the model using the [loadRouteData] method.
+     */
+    override fun getSubwayRouteWithMostStops(): Pair<Route, Int>? {
+        stopsPerRoute?.let {
+            val (route, stopCount) = it.maxByOrNull { entry -> entry.value } ?: return null
+            return Pair(route, stopCount)
+        }
+        throw IllegalStateException("The route data has not been loaded yet.")
+    }
+
+    /**
+     * Returns a pair containing the model's subway route with the fewest stops,
+     * and its number of stops.
+     *
+     * Returns null if the model has no subway routes.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the model using the [loadRouteData] method.
+     */
+    override fun getSubwayRouteWithFewestStops(): Pair<Route, Int>? {
+        stopsPerRoute?.let {
+            val (route, stopCount) = it.minByOrNull { entry -> entry.value } ?: return null
+            return Pair(route, stopCount)
+        }
+        throw IllegalStateException("The route data has not been loaded yet.")
+    }
+
+    /**
+     * Returns a map from the name of each stop that connects two or more subway
+     * routes to the list of routes that it connects.
+     *
+     * @throws IllegalStateException if route data has not yet been successfully
+     * loaded into the model using the [loadRouteData] method.
+     */
+    override fun getTransferStops(): Map<String, List<Route>> {
+        return subwayGraph?.stationNodes?.filter { it.routeIds.size >= 2 }?.associate {
+            Pair(it.name, it.routeIds.map { id -> getRouteFromId(id) })
+        } ?: throw IllegalStateException("The route data has not been loaded yet.")
     }
 }

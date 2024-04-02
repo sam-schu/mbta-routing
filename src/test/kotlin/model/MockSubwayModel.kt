@@ -33,4 +33,16 @@ class MockSubwayModel(
         }
         return routes
     }
+
+    override fun getSubwayRouteWithMostStops(): Pair<Route, Int>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getSubwayRouteWithFewestStops(): Pair<Route, Int>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getTransferStops(): Map<String, List<Route>> {
+        TODO("Not yet implemented")
+    }
 }

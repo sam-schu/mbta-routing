@@ -88,7 +88,7 @@ class SubwayControllerTests {
 
     @Test
     fun testCommand1Failure() {
-        testWithMockServer(singleRoute, rateLimited) { url ->
+        testWithMockServer(singleRoute, emptyResponse, rateLimited) { url ->
             val input = StringReader("1\nq\n")
             val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
             val controller = MbtaSubwayController(
@@ -163,8 +163,10 @@ class SubwayControllerTests {
     }
 
     @Test
-    fun testFullRun() {
-        testWithMockServer(singleRoute, rateLimited, threeRoutes) { url ->
+    fun testFullRunListingRoutes() {
+        testWithMockServer(
+            singleRoute, emptyResponse, rateLimited, threeRoutes, emptyResponse
+        ) { url ->
             val input = StringReader("h\n2\n1\n2\n1\n2\nQ\n")
             val model = MbtaSubwayModel(MbtaApiCaller(MbtaApi(url)))
             val controller = MbtaSubwayController(
