@@ -2,7 +2,7 @@ package model.graph
 
 import model.RoutePattern
 import model.Stop
-import java.util.Objects
+import java.util.*
 import kotlin.collections.HashMap
 
 /**
@@ -17,6 +17,122 @@ import kotlin.collections.HashMap
 internal class MbtaTransitGraph(
     internal val stationNodes: MutableList<StationNode>
 ) {
+    /**
+     * Returns a path from the given source station to the given destination
+     * station.
+     *
+     * The source and destination stations must be given by their names, not
+     * their IDs. The path is returned as a list of pairs of strings, where each
+     * pair represents (1) the route ID to take to the next stop and (2) the
+     * name of the next stop. (The source station is not included in the
+     * returned path.) The path returned is a path requiring the least number of
+     * stops to get from the source to the destination.
+     *
+     * Null is returned if no path can be found from the source station to the
+     * destination station. This includes if the source and destination stations
+     * are the same.
+     *
+     * @throws IllegalArgumentException if a station with the given source or
+     * destination name cannot be found.
+     */
+    internal fun findPath(
+        sourceStationName: String, destStationName: String
+    ): List<Pair<String, String>>? {
+        val edgePath = bfs(
+            getStationNodeFromName(sourceStationName),
+            getStationNodeFromName(destStationName)
+        ) ?: return null
+
+        return getDirectionsFromEdgePath(edgePath)
+    }
+
+    // Gets the station node with the given name, or throws an
+    // IllegalArgumentException if no such node exists.
+    private fun getStationNodeFromName(name: String): StationNode {
+        return stationNodes.find { it.name == name } ?: throw IllegalArgumentException(
+            "The specified station could not be found."
+        )
+    }
+
+    // Uses the breadth-first search algorithm to find a list of edges
+    // connecting the given source node to the given destination node. Null is
+    // returned if no path can be found, including if the source and destination
+    // are the same.
+    private fun bfs(source: StationNode, dest: StationNode): List<Edge>? {
+        // Maps each node to its parent in the BFS tree. A null value indicates
+        // that a node has been discovered but has no parent (i.e., is the
+        // source node). Nodes with no entries in the map have not yet been
+        // discovered.
+        val parentMap: HashMap<StationNode, StationNode?> = hashMapOf(
+            Pair(source, null)
+        )
+        val queue: Queue<StationNode> = LinkedList()
+        var current: StationNode
+
+        queue.add(source)
+
+        while (queue.isNotEmpty()) {
+            current = queue.remove()
+            for (toNode in current.outgoingEdges.values.map { it.destNode }) {
+                if (!parentMap.containsKey(toNode)) {
+                    parentMap[toNode] = current
+                    if (toNode === dest) {
+                        break
+                    }
+                    queue.add(toNode)
+                }
+            }
+        }
+
+        // If no path could be found, including if the source and destination
+        // nodes were the same, return null.
+        if (parentMap[dest] == null) {
+            return null
+        }
+
+        val path: MutableList<Edge> = mutableListOf()
+        var parent: StationNode
+        current = dest
+
+        // Traverses backwards through the parent of each node along the path
+        // to find the path from the source to the destination.
+        while (parentMap.getValue(current) != null) {
+            // This non-null assertion is safe because it mirrors the while loop
+            // condition.
+            parent = parentMap.getValue(current)!!
+            path.add(
+                parent.outgoingEdges.getValue(current.stationId)
+            )
+            current = parent
+        }
+
+        return path.reversed()
+    }
+
+    // Converts each edge in the given path to "directions": a pair consisting
+    // of the route ID to take to the next stop, and the name of that stop. Uses
+    // a simple greedy algorithm that always stays on the same route until it is
+    // forced to switch routes.
+    private fun getDirectionsFromEdgePath(path: List<Edge>): List<Pair<String, String>> {
+        val directions: MutableList<Pair<String, String>> = mutableListOf()
+        var currentRouteId: String? = null
+
+        for (edge in path) {
+            // When a transfer (or initial boarding) is required, picks any
+            // valid route to board. Otherwise, does not transfer routes if not
+            // required to do so.
+            if (currentRouteId == null || currentRouteId !in edge.routeIds) {
+                currentRouteId = edge.routeIds.first()
+            }
+            directions.add(Pair(
+                currentRouteId,
+                edge.destNode.name
+            ))
+        }
+
+        return directions
+    }
+
     companion object {
         /**
          * Generates a transit graph from a list of route patterns.
