@@ -2,6 +2,7 @@ package model
 
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * Includes tests for Api.kt that use true API calls to test functionality.
@@ -25,5 +26,17 @@ class ServerApiTests {
             ),
             service.getSubwayRoutes().execute().body()
         )
+    }
+
+    @Test
+    fun testGetCanonicalRoutePatterns() {
+        val service = MbtaApi().createService()
+        val routePatterns = service.getCanonicalRoutePatterns(
+            "Red,Mattapan,Orange,Mattapan,Green-B,Green-C,Green-D,Green-E,Blue"
+        ).execute().body()
+
+        assert(routePatterns is List<RoutePattern>)
+        assertNotNull(routePatterns)
+        assert(routePatterns.size > 10)
     }
 }

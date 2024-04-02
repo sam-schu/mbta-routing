@@ -6,6 +6,7 @@ import com.github.jasminb.jsonapi.retrofit.JSONAPIConverterFactory
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 /**
  * Provides access to a Retrofit API service with API calls for route and stop
@@ -34,7 +35,8 @@ internal class MbtaApi(baseUrl: String = MBTA_API_BASE_URL) : Api {
         .baseUrl(baseUrl)
         .addConverterFactory(JSONAPIConverterFactory(
             ObjectMapper().registerKotlinModule(),
-            Route::class.java
+            Route::class.java, RoutePattern::class.java, RouteId::class.java,
+            Trip::class.java, Stop::class.java
         ))
         .build()
 
@@ -55,6 +57,13 @@ internal class MbtaApi(baseUrl: String = MBTA_API_BASE_URL) : Api {
          */
         internal const val SUBWAY_ROUTES_ENDPOINT =
             "routes?filter[type]=0,1&fields[route]=long_name"
+
+        /**
+         * Endpoint to obtain a list of all canonical route patterns and
+         * associated information.
+         */
+        internal const val CANONICAL_ROUTE_PATTERNS_ENDPOINT =
+            "route_patterns?filter[canonical]=true&include=representative_trip.stops.parent_station&fields[route_pattern]=&fields[trip]=&fields[stop]=name"
     }
 }
 
@@ -69,4 +78,19 @@ internal interface ApiService {
      */
     @GET(MbtaApi.SUBWAY_ROUTES_ENDPOINT)
     fun getSubwayRoutes(): Call<List<Route>>
+
+    /**
+     * Returns a call to obtain a list of all canonical route patterns of a
+     * certain set of routes from the API.
+     *
+     * Each canonical route pattern includes a representative trip that includes
+     * the ordered list of stops that may typically be transited through along
+     * a route.
+     *
+     * @param routes the set of routes whose canonical route patterns should be
+     * obtained. Must be formatted as a set of route IDs separated only by
+     * commas (e.g., "Red,Blue").
+     */
+    @GET(MbtaApi.CANONICAL_ROUTE_PATTERNS_ENDPOINT)
+    fun getCanonicalRoutePatterns(@Query("filter[route]") routes: String): Call<List<RoutePattern>>
 }

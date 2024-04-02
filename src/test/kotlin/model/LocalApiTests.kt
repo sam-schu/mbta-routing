@@ -79,4 +79,90 @@ class LocalApiTests {
             )
         }
     }
+
+    @Test
+    fun testGetCanonicalRoutePatternsSuccess() {
+        testWithMockServer(emptyResponse, greenLineRoutePattern) { url ->
+            val service = MbtaApi(url).createService()
+
+            assertEquals(
+                listOf(),
+                service.getCanonicalRoutePatterns("Green-E").execute().body()
+            )
+
+            assertEquals(
+                listOf(RoutePattern(
+                    "Green-E-886-0",
+                    RouteId("Green-E"),
+                    Trip(
+                        "canonical-Green-E-C1-0",
+                        listOf(Stop(
+                            "70241",
+                            "Symphony",
+                            Stop(
+                                "place-symcl",
+                                "Symphony",
+                                null
+                            )
+                        ))
+                    )
+                )),
+                service.getCanonicalRoutePatterns("Green-E").execute().body()
+            )
+        }
+    }
+
+    @Test
+    fun testGetCanonicalRoutePatternsFailure() {
+        testWithMockServer(
+            badRequest, forbidden, rateLimited, malformedResponse, singleRouteMissingLongName
+        ) { url ->
+            val service = MbtaApi(url).createService()
+
+            repeat(3) {
+                assertEquals(
+                    false,
+                    service.getCanonicalRoutePatterns("Green-E").execute().isSuccessful
+                )
+            }
+
+            repeat(2) {
+                assertThrows<RuntimeException> {
+                    service.getCanonicalRoutePatterns("Green-E").execute()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testGetCanonicalRoutePatternsMixedSuccess() {
+        testWithMockServer(rateLimited, greenLineRoutePattern) { url ->
+            val service = MbtaApi(url).createService()
+
+            assertEquals(
+                false,
+                service.getCanonicalRoutePatterns("Green-E").execute().isSuccessful
+            )
+
+            assertEquals(
+                listOf(RoutePattern(
+                    "Green-E-886-0",
+                    RouteId("Green-E"),
+                    Trip(
+                        "canonical-Green-E-C1-0",
+                        listOf(Stop(
+                            "70241",
+                            "Symphony",
+                            Stop(
+                                "place-symcl",
+                                "Symphony",
+                                null
+                            )
+                        ))
+                    )
+                )),
+                service.getCanonicalRoutePatterns("Green-E").execute().body()
+            )
+        }
+    }
 }
